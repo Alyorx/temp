@@ -66,22 +66,27 @@ app.use(async (_req, _res, next) => {
 app.use(generalLimiter);
 
 // Routes
-// Health check
-app.get(['/health', '/api/health'], (_req, res) => {
-  res.json({ status: 'ok' });
+
+// Root and Health check endpoints
+app.get(['/', '/api', '/api/', '/health', '/api/health'], (_req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'TaskFlow API is running',
+    version: '1.0.0'
+  });
 });
 
 // Mount auth routes register, login, refresh, logout.
-app.use('/api/auth', authRoutes);
+app.use(['/api/auth', '/auth'], authRoutes);
 
 // Mount project routes create, list, get, update, delete projects.
-app.use('/api/projects', projectRoutes);
+app.use(['/api/projects', '/projects'], projectRoutes);
 
 // Mount member routes add, remove, list members of a project.
-app.use('/api/projects/:id/members', memberRoutes);
+app.use(['/api/projects/:id/members', '/projects/:id/members'], memberRoutes);
 
 // Mount task routes — the core feature of TaskFlow.
-app.use('/api/projects/:id/tasks', taskRoutes);
+app.use(['/api/projects/:id/tasks', '/projects/:id/tasks'], taskRoutes);
 
 // 404 
 app.use((_req, res) => {
