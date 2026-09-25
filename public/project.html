@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Detail — TaskFlow</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Application Header -->
+  <header class="app-header">
+    <div class="app-header__inner">
+      <div class="app-header__left">
+        <a href="home.html" class="brand-mark">
+          <span class="brand-mark__glyph" aria-hidden="true">TF</span>
+          <span>TaskFlow</span>
+        </a>
+        <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+          <span class="breadcrumb-nav__sep" aria-hidden="true">/</span>
+          <a href="home.html" class="breadcrumb-nav__link">Projects</a>
+          <span class="breadcrumb-nav__sep" aria-hidden="true">/</span>
+          <span id="breadcrumb-project-name" class="breadcrumb-nav__current" aria-current="page">
+            Loading project...
+          </span>
+        </nav>
+      </div>
+
+      <div class="app-header__right">
+        <div class="user-pill">
+          <span>Signed in as</span>
+          <span id="header-user-name" class="user-pill__name">Loading...</span>
+        </div>
+        <button type="button" id="logout-btn" class="btn btn--ghost btn--sm">
+          Sign out
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Content -->
+  <main class="workspace-main">
+    <!-- Error / Access Denied State if viewer does not belong to this project -->
+    <div id="project-access-error" class="empty-state is-hidden" role="alert"></div>
+
+    <div id="project-workspace-content">
+      <!-- Project Header (Read-only for organizer/member; Inline editable for admin ONLY) -->
+      <header class="page-header">
+        <div class="page-header__title-group">
+          <div class="page-header__title-row">
+            <h1 id="project-title-display" class="page-title">Loading...</h1>
+            <span id="project-role-badge-slot"></span>
+          </div>
+          <p id="project-desc-display" class="page-subtitle"></p>
+        </div>
+
+        <div id="invitation-actions" class="page-header__actions is-hidden">
+          <button type="button" id="accept-invitation-btn" class="btn btn--primary btn--sm">
+            Accept invitation
+          </button>
+          <button type="button" id="decline-invitation-btn" class="btn btn--secondary btn--sm">
+            Decline invitation
+          </button>
+        </div>
+
+        <!-- Admin-Only Project Actions (UX nicety only; enforced server-side in Part 3) -->
+        <div id="admin-project-actions" class="page-header__actions is-hidden">
+          <button
+            type="button"
+            id="edit-project-toggle-btn"
+            class="btn btn--secondary btn--sm"
+            aria-expanded="false"
+            aria-controls="inline-project-edit-panel"
+          >
+            Edit project info
+          </button>
+          <button type="button" id="delete-project-btn" class="btn btn--danger btn--sm">
+            Delete project
+          </button>
+        </div>
+      </header>
+
+      <!-- Inline Project Edit Form (`PATCH /projects/:id` — Admin ONLY) -->
+      <section
+        id="inline-project-edit-panel"
+        class="collapsible-panel is-hidden"
+        aria-labelledby="edit-project-heading"
+      >
+        <div class="collapsible-panel__header">
+          <h2 id="edit-project-heading" class="collapsible-panel__title">
+            Edit project information
+          </h2>
+          <button type="button" id="cancel-project-edit-btn" class="btn btn--ghost btn--sm">
+            Cancel
+          </button>
+        </div>
+
+        <form id="inline-project-edit-form" novalidate>
+          <div class="form-field">
+            <label for="edit-project-name" class="form-label">Project name</label>
+            <input
+              type="text"
+              id="edit-project-name"
+              class="form-input"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="edit-project-desc" class="form-label">Description</label>
+            <textarea
+              id="edit-project-desc"
+              class="form-textarea"
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary btn--sm">Save changes</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Asymmetric 2-Column Split: Tasks Ledger (Primary) + Members Rail (Secondary) -->
+      <div class="project-split">
+        <!-- LEFT / PRIMARY COLUMN: TASKS SECTION -->
+        <section class="section-block" aria-labelledby="tasks-section-heading">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h2 id="tasks-section-heading" class="section-title">Tasks</h2>
+              <span id="tasks-count-label" class="section-count">(0)</span>
+            </div>
+
+            <!-- Admin / Organizer Only: "New task" button (UX nicety only; enforced server-side) -->
+            <button
+              type="button"
+              id="toggle-task-form-btn"
+              class="btn btn--primary btn--sm is-hidden"
+              aria-expanded="false"
+              aria-controls="task-modal-panel"
+            >
+              New task
+            </button>
+          </div>
+
+          <!-- Collapsible New / Edit Task Form (`POST /projects/:id/tasks` or `PATCH /projects/:id/tasks/:taskId`) -->
+          <div
+            id="task-modal-panel"
+            class="collapsible-panel is-hidden"
+            aria-labelledby="task-form-heading"
+          >
+            <div class="collapsible-panel__header">
+              <h3 id="task-form-heading" class="collapsible-panel__title">Create task</h3>
+              <button type="button" id="cancel-task-form-btn" class="btn btn--ghost btn--sm">
+                Cancel
+              </button>
+            </div>
+
+            <form id="project-task-form" novalidate>
+              <input type="hidden" id="task-form-edit-id" value="" />
+
+              <div class="form-field">
+                <label for="task-title-input" class="form-label">Task title</label>
+                <input
+                  type="text"
+                  id="task-title-input"
+                  class="form-input"
+                  placeholder="e.g., Rotate webhook signing key"
+                  required
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="task-desc-input" class="form-label">Specification / description</label>
+                <textarea
+                  id="task-desc-input"
+                  class="form-textarea"
+                  placeholder="Describe what needs to be done and how to verify completion..."
+                ></textarea>
+              </div>
+
+              <div class="form-row-grid">
+                <div class="form-field">
+                  <label for="task-assignee-select" class="form-label">Assigned to</label>
+                  <select id="task-assignee-select" class="form-select"></select>
+                </div>
+
+                <div class="form-field">
+                  <label for="task-status-select" class="form-label">Status</label>
+                  <select id="task-status-select" class="form-select">
+                    <option value="todo">To do</option>
+                    <option value="in_progress">In progress</option>
+                    <option value="blocked">Blocked</option>
+                    <option value="done">Done</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="task-priority-select" class="form-label">Priority</label>
+                  <select id="task-priority-select" class="form-select">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="task-due-date-input" class="form-label">Due date</label>
+                  <input
+                    type="datetime-local"
+                    id="task-due-date-input"
+                    class="form-input"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" id="task-form-submit-btn" class="btn btn--primary btn--sm">
+                  Save task
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Status Filter Toolbar -->
+          <div class="task-toolbar" role="toolbar" aria-label="Filter tasks by status">
+            <div class="task-toolbar__filters">
+              <button type="button" class="filter-pill" data-status-filter="all" aria-pressed="true">
+                All tasks
+              </button>
+              <button type="button" class="filter-pill" data-status-filter="todo" aria-pressed="false">
+                To do
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                data-status-filter="in_progress"
+                aria-pressed="false"
+              >
+                In progress
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                data-status-filter="blocked"
+                aria-pressed="false"
+              >
+                Blocked
+              </button>
+              <button type="button" class="filter-pill" data-status-filter="done" aria-pressed="false">
+                Done
+              </button>
+            </div>
+          </div>
+
+          <!-- Task Ledger List -->
+          <div id="tasks-ledger-container"></div>
+        </section>
+
+        <!-- RIGHT / SECONDARY COLUMN: MEMBERS SECTION -->
+        <aside class="section-block" aria-labelledby="members-section-heading">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h2 id="members-section-heading" class="section-title">Members</h2>
+              <span id="members-count-label" class="section-count">(0)</span>
+            </div>
+          </div>
+
+          <div class="members-rail">
+            <!-- Invite by Email Form (`POST /projects/:id/members` — Admin & Organizer ONLY) -->
+            <div id="invite-member-box" class="members-invite is-hidden">
+              <form id="invite-member-form" class="members-invite__form" novalidate>
+                <label for="invite-email-input" class="form-label">Invite by email</label>
+                <div class="members-invite__row">
+                  <input
+                    type="email"
+                    id="invite-email-input"
+                    class="form-input"
+                    placeholder="teammate@taskflow.dev"
+                    required
+                  />
+                  <button type="submit" class="btn btn--secondary btn--sm">
+                    Send invite
+                  </button>
+                </div>
+                <span class="form-hint">
+                  Invited users join as Member by default.
+                </span>
+              </form>
+            </div>
+
+            <!-- Members List (`GET /projects/:id/members`) -->
+            <ul id="members-list" class="members-list"></ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/project.js"></script>
+</body>
+</html>

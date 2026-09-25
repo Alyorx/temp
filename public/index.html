@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in — TaskFlow</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="auth-heading">
+      <header class="auth-card__header">
+        <a href="index.html" class="brand-mark">
+          <span class="brand-mark__glyph" aria-hidden="true">TF</span>
+          <span>TaskFlow</span>
+        </a>
+        <h1 id="auth-heading" class="auth-card__title">Sign in to your workspace</h1>
+        <p id="auth-subheading" class="auth-card__subtitle">
+          Organize project tasks with role-scoped access control.
+        </p>
+      </header>
+
+      <!-- Accessible Two-Tab Switcher: Sign in vs Create account -->
+      <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
+        <button
+          type="button"
+          role="tab"
+          id="tab-login"
+          class="auth-tab"
+          aria-selected="true"
+          aria-controls="panel-login"
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-register"
+          class="auth-tab"
+          aria-selected="false"
+          aria-controls="panel-register"
+        >
+          Create account
+        </button>
+      </div>
+
+      <div class="auth-card__body">
+        <!-- Inline Banner for { error: { code, message } } feedback -->
+        <div id="auth-error-banner" class="inline-banner inline-banner--error is-hidden" role="alert"></div>
+
+        <!-- Panel 1: Sign in Form (POST /auth/login) -->
+        <form id="panel-login" role="tabpanel" aria-labelledby="tab-login" novalidate>
+          <div class="form-field">
+            <label for="login-email" class="form-label">Work email</label>
+            <input
+              type="email"
+              id="login-email"
+              name="email"
+              class="form-input"
+              placeholder="you@company.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="login-password" class="form-label">Password</label>
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              class="form-input"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="login-submit-btn" class="btn btn--primary btn--full">
+              Sign in to workspace
+            </button>
+          </div>
+        </form>
+
+        <!-- Panel 2: Create account Form (POST /auth/register) -->
+        <form
+          id="panel-register"
+          role="tabpanel"
+          aria-labelledby="tab-register"
+          class="is-hidden"
+          novalidate
+        >
+          <div class="form-field">
+            <label for="register-name" class="form-label">Full name</label>
+            <input
+              type="text"
+              id="register-name"
+              name="name"
+              class="form-input"
+              placeholder="Taylor Vance"
+              autocomplete="name"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="register-email" class="form-label">Work email</label>
+            <input
+              type="email"
+              id="register-email"
+              name="email"
+              class="form-input"
+              placeholder="taylor@taskflow.dev"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="register-password" class="form-label">Password</label>
+            <input
+              type="password"
+              id="register-password"
+              name="password"
+              class="form-input"
+              placeholder="At least 8 characters"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="register-submit-btn" class="btn btn--primary btn--full">
+              Create account
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </section>
+  </main>
+
+  <script type="module" src="js/auth.js?v=invite-flow"></script>
+</body>
+</html>

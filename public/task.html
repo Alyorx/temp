@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Detail — TaskFlow</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Application Header -->
+  <header class="app-header">
+    <div class="app-header__inner">
+      <div class="app-header__left">
+        <a href="home.html" class="brand-mark">
+          <span class="brand-mark__glyph" aria-hidden="true">TF</span>
+          <span>TaskFlow</span>
+        </a>
+        <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+          <span class="breadcrumb-nav__sep" aria-hidden="true">/</span>
+          <a href="home.html" class="breadcrumb-nav__link">Projects</a>
+          <span class="breadcrumb-nav__sep" aria-hidden="true">/</span>
+          <a id="breadcrumb-project-link" href="project.html" class="breadcrumb-nav__link">
+            Project
+          </a>
+          <span class="breadcrumb-nav__sep" aria-hidden="true">/</span>
+          <span id="breadcrumb-task-code" class="breadcrumb-nav__current" aria-current="page">
+            Task
+          </span>
+        </nav>
+      </div>
+
+      <div class="app-header__right">
+        <div class="user-pill">
+          <span>Signed in as</span>
+          <span id="header-user-name" class="user-pill__name">Loading...</span>
+        </div>
+        <button type="button" id="logout-btn" class="btn btn--ghost btn--sm">
+          Sign out
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Content -->
+  <main class="workspace-main">
+    <!-- Error / Not Found / Forbidden State -->
+    <div id="task-access-error" class="empty-state is-hidden" role="alert"></div>
+
+    <div id="task-workspace-content">
+      <div class="page-header">
+        <div class="page-header__title-group">
+          <div class="page-header__title-row">
+            <a id="back-to-project-btn" href="project.html" class="btn btn--secondary btn--sm">
+              Back to project tasks
+            </a>
+            <span id="viewer-role-context"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2-Column Layout: Read-Only Task Specification Sheet + Role-Gated Action Panel -->
+      <div class="task-detail-layout">
+        <!-- LEFT COLUMN: Read-Only Task Fields (Shown to everyone) -->
+        <article class="task-sheet" aria-labelledby="task-detail-title">
+          <header class="task-sheet__header">
+            <div class="task-sheet__eyebrow">
+              <span id="task-detail-code" class="task-sheet__code">TF-000</span>
+              <span id="task-detail-updated" class="task-sheet__timestamp"></span>
+            </div>
+            <h1 id="task-detail-title" class="task-sheet__title">Loading task...</h1>
+          </header>
+
+          <!-- Structured Metadata Cells -->
+          <div class="task-meta-grid">
+            <div class="task-meta-cell">
+              <span class="task-meta-cell__label">Status</span>
+              <div id="task-detail-status" class="task-meta-cell__value"></div>
+            </div>
+
+            <div class="task-meta-cell">
+              <span class="task-meta-cell__label">Priority</span>
+              <div id="task-detail-priority" class="task-meta-cell__value"></div>
+            </div>
+
+            <div class="task-meta-cell">
+              <span class="task-meta-cell__label">Assigned to</span>
+              <div id="task-detail-assignee" class="task-meta-cell__value"></div>
+            </div>
+
+            <div class="task-meta-cell">
+              <span class="task-meta-cell__label">Project</span>
+              <div id="task-detail-project" class="task-meta-cell__value"></div>
+            </div>
+          </div>
+
+          <!-- Read-Only Description -->
+          <div class="task-sheet__description">
+            <h2 class="task-sheet__section-label">Task specification</h2>
+            <p id="task-detail-description" class="task-sheet__prose"></p>
+          </div>
+        </article>
+
+        <!-- RIGHT COLUMN: Role-Gated Control Panel -->
+        <aside class="control-panel" aria-labelledby="control-panel-heading">
+          <!-- STATE 1: Admin or Organizer — Full Edit Form + Delete (`PATCH /projects/:id/tasks/:taskId` & `DELETE`) -->
+          <section id="full-edit-section" class="is-hidden">
+            <header class="control-panel__header">
+              <h2 id="control-panel-heading" class="control-panel__title">Manage task</h2>
+              <p class="control-panel__subtitle">
+                As a project admin or organizer, you can edit all task fields or delete this task.
+              </p>
+            </header>
+
+            <form id="full-task-edit-form" novalidate>
+              <div class="form-field">
+                <label for="full-edit-title" class="form-label">Title</label>
+                <input
+                  type="text"
+                  id="full-edit-title"
+                  class="form-input"
+                  required
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="full-edit-description" class="form-label">Description</label>
+                <textarea
+                  id="full-edit-description"
+                  class="form-textarea"
+                  rows="4"
+                ></textarea>
+              </div>
+
+              <div class="form-field">
+                <label for="full-edit-status" class="form-label">Status</label>
+                <select id="full-edit-status" class="form-select">
+                  <option value="todo">To do</option>
+                  <option value="in_progress">In progress</option>
+                  <option value="blocked">Blocked</option>
+                  <option value="done">Done</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="full-edit-priority" class="form-label">Priority</label>
+                <select id="full-edit-priority" class="form-select">
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="full-edit-assignee" class="form-label">Assigned to</label>
+                <select id="full-edit-assignee" class="form-select"></select>
+              </div>
+
+              <div class="form-actions" style="justify-content: space-between;">
+                <button type="button" id="delete-task-btn" class="btn btn--danger btn--sm">
+                  Delete task
+                </button>
+                <button type="submit" class="btn btn--primary btn--sm">
+                  Save changes
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- STATE 2: Plain Member AND Assignee — Status Dropdown ONLY (`PATCH /projects/:id/tasks/:taskId/status`) -->
+          <section id="member-status-only-section" class="is-hidden">
+            <header class="control-panel__header">
+              <h2 class="control-panel__title">Update task status</h2>
+              <p class="control-panel__subtitle">
+                This task is assigned to you. You can update its progress status below.
+              </p>
+            </header>
+
+            <form id="member-status-form" novalidate>
+              <div class="form-field">
+                <label for="member-status-select" class="form-label">Status</label>
+                <select id="member-status-select" class="form-select">
+                  <option value="todo">To do</option>
+                  <option value="in_progress">In progress</option>
+                  <option value="blocked">Blocked</option>
+                  <option value="done">Done</option>
+                </select>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn--primary btn--full">
+                  Save status
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- STATE 3: Plain Member AND NOT Assignee — Strictly Read-Only (No Controls) -->
+          <section id="member-readonly-section" class="is-hidden">
+            <header class="control-panel__header">
+              <h2 class="control-panel__title">Read-only access</h2>
+              <p class="control-panel__subtitle">
+                Your role on this project is Member.
+              </p>
+            </header>
+
+            <div class="readonly-notice">
+              <div class="readonly-notice__title">No edit controls available</div>
+              <p>
+                Plain members can only change the status of tasks assigned directly to them.
+                Because this task is assigned to <strong id="readonly-assignee-name">another member</strong>,
+                all fields are read-only.
+              </p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/task.js"></script>
+</body>
+</html>

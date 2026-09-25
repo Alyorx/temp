@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects — TaskFlow</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Application Header -->
+  <header class="app-header">
+    <div class="app-header__inner">
+      <div class="app-header__left">
+        <a href="home.html" class="brand-mark">
+          <span class="brand-mark__glyph" aria-hidden="true">TF</span>
+          <span>TaskFlow</span>
+        </a>
+        <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+          <span class="breadcrumb-nav__sep" aria-hidden="true">/</span>
+          <span class="breadcrumb-nav__current" aria-current="page">Projects</span>
+        </nav>
+      </div>
+
+      <div class="app-header__right">
+        <div class="user-pill">
+          <span>Signed in as</span>
+          <span id="header-user-name" class="user-pill__name">Loading...</span>
+        </div>
+        <button type="button" id="logout-btn" class="btn btn--ghost btn--sm">
+          Sign out
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Content -->
+  <main class="workspace-main">
+    <header class="page-header">
+      <div class="page-header__title-group">
+        <div class="page-header__title-row">
+          <h1 class="page-title">Your projects</h1>
+        </div>
+        <p class="page-subtitle">
+          Projects organize tasks and define your permission level. Select a project to open its task ledger.
+        </p>
+      </div>
+
+      <div class="page-header__actions">
+        <!-- Any authenticated user can create a new project (auto-assigned as Admin) -->
+        <button
+          type="button"
+          id="toggle-new-project-btn"
+          class="btn btn--primary"
+          aria-expanded="false"
+          aria-controls="new-project-panel"
+        >
+          New project
+        </button>
+      </div>
+    </header>
+
+    <!-- Collapsible "New Project" Form Panel (`POST /projects`) -->
+    <section
+      id="new-project-panel"
+      class="collapsible-panel is-hidden"
+      aria-labelledby="new-project-heading"
+    >
+      <div class="collapsible-panel__header">
+        <h2 id="new-project-heading" class="collapsible-panel__title">Create a new project</h2>
+        <button type="button" id="cancel-new-project-btn" class="btn btn--ghost btn--sm">
+          Cancel
+        </button>
+      </div>
+
+      <form id="new-project-form" novalidate>
+        <div class="form-field">
+          <label for="project-name-input" class="form-label">Project name</label>
+          <input
+            type="text"
+            id="project-name-input"
+            name="name"
+            class="form-input"
+            placeholder="e.g., Billing Webhook Service"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="project-desc-input" class="form-label">Description</label>
+          <textarea
+            id="project-desc-input"
+            name="description"
+            class="form-textarea"
+            placeholder="Briefly describe what tasks belong in this project..."
+          ></textarea>
+          <span class="form-hint">
+            You will automatically be assigned the Admin role on this project.
+          </span>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary">Create project</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Projects Grid (`GET /projects`) -->
+    <section aria-label="Projects list">
+      <div id="projects-grid" class="projects-grid"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/home.js"></script>
+</body>
+</html>
