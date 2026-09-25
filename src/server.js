@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const path = require('path');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
@@ -65,10 +66,13 @@ app.use(async (_req, _res, next) => {
 // Apply rate limiting globally broad protection against DoS and scraping
 app.use(generalLimiter);
 
+// Serve static frontend files from public/ directory
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Routes
 
-// Root and Health check endpoints
-app.get(['/', '/api', '/api/', '/health', '/api/health'], (_req, res) => {
+// API Health & status check endpoint (for /api and /api/health)
+app.get(['/api', '/api/', '/health', '/api/health'], (_req, res) => {
   res.json({
     status: 'ok',
     message: 'TaskFlow API is running',
@@ -88,14 +92,20 @@ app.use(['/api/projects/:id/members', '/projects/:id/members'], memberRoutes);
 // Mount task routes — the core feature of TaskFlow.
 app.use(['/api/projects/:id/tasks', '/projects/:id/tasks'], taskRoutes);
 
-// 404 
-app.use((_req, res) => {
-  res.status(404).json({
-    error: {
-      code: 'NOT_FOUND',
-      message: 'The requested resource does not exist',
-    },
-  });
+// 404 Handler
+app.use((req, res) => {
+  // Return JSON 404 for unhandled API requests
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({
+      error: {
+        code: 'NOT_FOUND',
+        message: 'The requested API endpoint does not exist',
+      },
+    });
+  }
+
+  // Fallback to serving frontend index.html for web navigation
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Centralized error handler
