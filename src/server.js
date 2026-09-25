@@ -23,16 +23,13 @@ app.use(express.json());
 app.use(cookieParser());
 
 // CORS with credentials so the browser can send cookies.
-// In local development and VS Code web preview, the browser may be served from a
-// forwarded remote origin (for example: https://8000-<id>.app.github.dev), so we
-// allow those origins too instead of forcing localhost only.
 app.use(
   cors({
     origin: (origin, callback) => {
       if (process.env.NODE_ENV === 'production') {
         const allowedOrigins = [process.env.CLIENT_ORIGIN].filter(Boolean);
 
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
           callback(null, true);
           return;
         }
@@ -41,8 +38,8 @@ app.use(
         return;
       }
 
-      // Allow localhost, loopback, and forwarded web-preview origins during development.
-      if (!origin || /localhost|127\.0\.0\.1|\.github\.dev|\.vscode\.dev|\.app\.github\.dev/.test(origin)) {
+      // Allow localhost, loopback, Vercel preview, and forwarded web-preview origins during development.
+      if (!origin || /localhost|127\.0\.0\.1|\.github\.dev|\.vscode\.dev|\.app\.github\.dev|\.vercel\.app/.test(origin)) {
         callback(null, true);
         return;
       }
@@ -55,12 +52,22 @@ app.use(
   })
 );
 
+// Ensure DB connection for incoming requests (vital for Serverless environments like Vercel)
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Apply rate limiting globally broad protection against DoS and scraping
 app.use(generalLimiter);
 
 // Routes
 // Health check
-app.get('/health', (_req, res) => {
+app.get(['/health', '/api/health'], (_req, res) => {
   res.json({ status: 'ok' });
 });
 
@@ -87,16 +94,8 @@ app.use((_req, res) => {
 });
 
 // Centralized error handler
-
-/**
- * Express calls this when next(err) is invoked or a middleware throws.
- * It normalizes every error into the project's standard JSON shape:
- *   { "error": { "code": "...", "message": "..." } }
- 
- * Mongoose validation errors get special treatment so the client receives a useful message
- */
 app.use((err, _req, res, _next) => {
-  //  Mongoose validation error 
+  // Mongoose validation error 
   if (err.name === 'ValidationError') {
     const messages = Object.values(err.errors).map((e) => e.message);
     return res.status(400).json({
@@ -129,7 +128,6 @@ app.use((err, _req, res, _next) => {
   }
 
   // Everything else 
-  // If the thrower set a statusCode, use it otherwise default to 500.
   const statusCode = err.statusCode || 500;
   const code = err.errorCode || 'INTERNAL_ERROR';
   const message =
@@ -146,13 +144,14 @@ app.use((err, _req, res, _next) => {
 });
 
 // Starter 
-
-// Connect to MongoDB first, then start listening
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`TaskFlow API running on port ${PORT}`);
+// Only call listen if run directly via CLI (e.g., node src/server.js)
+if (require.main === module) {
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`TaskFlow API running on port ${PORT}`);
+    });
   });
-});
+}
 
-// Export for testing (supertest can import the app without calling listen).
+// Export for Vercel / serverless / testing
 module.exports = app;

@@ -1,22 +1,9 @@
 {
   "version": 2,
-  "services": {
-    "my_frontend": {
-      "root": "public/"
-    },
-    "my_backend": {
-      "root": "src/",
-      "entrypoint": "server.js"
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": { "service": "my_backend" }
-    },
-    {
-      "source": "/(.*)",
-      "destination": { "service": "my_frontend" }
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
     }
   ]
 }
